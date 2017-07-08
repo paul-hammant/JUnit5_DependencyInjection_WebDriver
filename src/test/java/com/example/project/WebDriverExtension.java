@@ -10,20 +10,13 @@
 
 package com.example.project;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolutionException;
-import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.extension.*;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
-public class WebDriverExtension implements ParameterResolver {
+import java.util.Optional;
 
-    private ChromeDriver driver;
-
-    {
-        System.out.printf("for breakpoints so I can check object IDs as I workout the scopes");
-    }
+public class WebDriverExtension implements ParameterResolver, AfterAllCallback {
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
@@ -32,9 +25,15 @@ public class WebDriverExtension implements ParameterResolver {
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        if (driver == null) {
-            driver = new ChromeDriver();
-        }
-        return driver;
+        ExtensionContext.Store store = extensionContext.getParent().get().getStore();
+        return store.getOrComputeIfAbsent(WebDriver.class, webDriverClass -> new ChromeDriver());
     }
+
+    @Override
+    public void afterAll(ExtensionContext extensionContext) throws Exception {
+        ExtensionContext.Store store = extensionContext.getParent().get().getStore();
+        store.get(WebDriver.class, WebDriver.class).quit();
+    }
+
+
 }

@@ -30,7 +30,7 @@ class SecondTest {
 
 	@Test
 	@DisplayName("My 2st JUnit 5 and Maven and DI and Selenium test! 😎")
-	void myFirstTest(TestInfo testInfo) {
+	void mySecondTest(TestInfo testInfo) {
 		wd.get("https://github.com/junit-team/junit5-samples/issues/29");
 		assertThat(wd.getTitle(), containsString("Dependency Injection"));
 	}
