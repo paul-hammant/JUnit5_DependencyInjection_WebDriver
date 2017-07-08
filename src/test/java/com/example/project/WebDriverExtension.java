@@ -22,7 +22,7 @@ public class WebDriverExtension implements ParameterResolver {
     private ChromeDriver driver;
 
     {
-        System.out.printf("");
+        System.out.printf("for breakpoints so I can check object IDs as I workout the scopes");
     }
 
     @Override
