@@ -14,9 +14,11 @@ import org.junit.jupiter.api.extension.*;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
-import java.util.Optional;
+import java.util.logging.Logger;
 
-public class WebDriverExtension implements ParameterResolver, AfterAllCallback {
+public class WebDriverExtension implements ParameterResolver {
+
+    private static final Logger LOG = Logger.getLogger(WebDriverExtension.class.getName());
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
@@ -25,14 +27,24 @@ public class WebDriverExtension implements ParameterResolver, AfterAllCallback {
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        ExtensionContext.Store store = extensionContext.getParent().get().getStore();
-        return store.getOrComputeIfAbsent(WebDriver.class, webDriverClass -> new ChromeDriver());
+        ExtensionContext.Store store = getRoot(extensionContext).getStore();
+        return store.getOrComputeIfAbsent(WebDriver.class, webDriverClass -> {
+            LOG.info("Creating ChromeDriver");
+            ChromeDriver chromeDriver = new ChromeDriver();
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                LOG.info("Quitting ChromeDriver");
+                chromeDriver.quit();
+            }));
+            return chromeDriver;
+        });
     }
 
-    @Override
-    public void afterAll(ExtensionContext extensionContext) throws Exception {
-        ExtensionContext.Store store = extensionContext.getParent().get().getStore();
-        store.get(WebDriver.class, WebDriver.class).quit();
+    private ExtensionContext getRoot(ExtensionContext extensionContext) {
+        ExtensionContext root = extensionContext;
+        while (root.getParent().isPresent()) {
+            root = root.getParent().get();
+        }
+        return root;
     }
 
 
